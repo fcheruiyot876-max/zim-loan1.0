@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InnBucks | Smart Instant Loans</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+        body { background-color: #f8fafc; font-family: 'Plus Jakarta Sans', sans-serif; overflow-x: hidden; }
+        
+        /* InnBucks Signature Blue Gradient */
+        .innbucks-blue { background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); }
+        .card-shadow { box-shadow: 0 25px 40px -10px rgba(0, 0, 0, 0.08); }
+        
+        /* Entry Animation */
+        .fade-in { animation: fadeInUp 0.8s ease-out forwards; }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        #activity-popup { transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform: translateY(150%); opacity: 0; }
+        #activity-popup.show { transform: translateY(0); opacity: 1; }
+
+        input[type=range] { -webkit-appearance: none; background: #e2e8f0; height: 8px; border-radius: 10px; }
+        input[type=range]::-webkit-slider-thumb { 
+            -webkit-appearance: none; height: 32px; width: 32px; border-radius: 50%; 
+            background: #0ea5e9; cursor: pointer; border: 4px solid white; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4); 
+        }
+    </style>
+</head>
+<body class="text-slate-900">
+
+    <header class="pt-10 pb-6 text-center">
+        <div class="flex items-center justify-center gap-2 mb-2">
+            <div class="grid grid-cols-2 gap-0.5 w-5">
+                <div class="w-2 h-2 rounded-full bg-cyan-400"></div>
+                <div class="w-2 h-2 rounded-full bg-orange-400"></div>
+                <div class="w-2 h-2 rounded-full bg-pink-500"></div>
+                <div class="w-2 h-2 rounded-full bg-green-400"></div>
+            </div>
+            <h1 class="text-2xl font-extrabold tracking-tight">InnBucks <span class="text-blue-600">Smart</span></h1>
+        </div>
+    </header>
+
+    <main class="max-w-xl mx-auto px-5 space-y-8 pb-20">
+
+        <div class="space-y-6 fade-in">
+            <div class="innbucks-blue rounded-[35px] p-8 text-white relative overflow-hidden card-shadow">
+                <div class="relative z-10">
+                    <h2 class="text-4xl font-extrabold mb-2 leading-tight">Instant Capital <br>For Your Growth</h2>
+                    <p class="text-blue-100 text-sm font-medium mb-4 italic">2 Minute Approval • Sent to Your Wallet</p>
+                    <div class="flex items-center gap-2 bg-white/20 w-fit px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">
+                        <span class="animate-ping h-2 w-2 rounded-full bg-green-400 opacity-75"></span>
+                        942 Loans Disbursed Today
+                    </div>
+                </div>
+                <div class="absolute -right-12 -bottom-12 w-48 h-48 bg-white/10 rounded-full blur-3xl"></div>
+            </div>
+
+            <div class="bg-white rounded-[40px] p-8 card-shadow space-y-8 border border-white/50">
+                <div>
+                    <div class="flex justify-between items-end mb-4">
+                        <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Amount Needed</h3>
+                        <span class="text-4xl font-black text-blue-600" id="loanDisplay">$1,000</span>
+                    </div>
+                    <input type="range" min="200" max="10000" value="1000" step="100" class="w-full cursor-pointer" id="loanSlider">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-blue-50/50 rounded-2xl p-4 text-center border border-blue-100">
+                        <p class="text-[10px] font-bold text-blue-400 uppercase mb-1">Monthly Repay</p>
+                        <p class="text-xl font-bold text-blue-900" id="repayDisplay">$98.33</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-2xl p-4 text-center border border-slate-100">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Loan Period</p>
+                        <p class="text-xl font-bold text-slate-800">12 Months</p>
+                    </div>
+                </div>
+
+                <button onclick="window.location.href='apply.html'" class="w-full bg-blue-600 text-white py-5 rounded-[25px] font-bold text-lg hover:bg-blue-700 transition-all shadow-xl shadow-blue-200 flex items-center justify-center gap-3 active:scale-95">
+                    Apply for Loan <i class="fas fa-arrow-right text-xs"></i>
+                </button>
+            </div>
+        </div>
+
+        <section class="space-y-4 fade-in" style="animation-delay: 0.3s;">
+            <div class="bg-white p-6 rounded-[30px] card-shadow flex items-center gap-5">
+                <div class="w-14 h-14 bg-cyan-100 text-cyan-600 rounded-2xl flex items-center justify-center shrink-0">
+                    <i class="fas fa-bolt text-2xl"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-800">Swift Processing</h4>
+                    <p class="text-xs text-slate-500">Automated systems verify your application in minutes.</p>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-[30px] card-shadow flex items-center gap-5">
+                <div class="w-14 h-14 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center shrink-0">
+                    <i class="fas fa-lock text-2xl"></i>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-800">End-to-End Security</h4>
+                    <p class="text-xs text-slate-500">256-bit encryption keeps your data and funds safe.</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <div id="activity-popup" class="fixed bottom-6 left-6 z-50 bg-white/95 backdrop-blur-md border border-white p-4 rounded-[25px] shadow-2xl flex items-center gap-4 max-w-[280px]">
+        <div class="bg-blue-600 text-white w-10 h-10 rounded-full flex items-center justify-center shrink-0">
+            <i class="fas fa-check"></i>
+        </div>
+        <div>
+            <p class="text-[11px] text-slate-700 leading-tight">
+                <span class="font-bold" id="popup-name">Lebo M.</span> <span id="popup-action">just withdrew</span> <br>
+                <span class="font-bold text-blue-600" id="popup-amount">$4,500</span>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // --- Calculator Logic ---
+        const slider = document.getElementById('loanSlider');
+        const loanDisplay = document.getElementById('loanDisplay');
+        const repayDisplay = document.getElementById('repayDisplay');
+
+        slider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            // Formula: (P * R * (1+R)^N) / ((1+R)^N - 1) | R = 0.15/12, N = 12
+            const R = 0.15 / 12;
+            const N = 12;
+            const emi = (val * R * Math.pow(1 + R, N)) / (Math.pow(1 + R, N) - 1);
+            
+            loanDisplay.innerText = `$${val.toLocaleString()}`;
+            repayDisplay.innerText = `$${emi.toFixed(2)}`;
+            
+            // Save to localStorage for apply.html
+            localStorage.setItem('selectedLoan', JSON.stringify({
+                amount: val,
+                monthly: emi.toFixed(2)
+            }));
+        });
+
+        // --- Social Proof Popup Logic ---
+        const names = ["Tanaka M.", "Sarah J.", "Blessing K.", "David O.", "Ruvimbo T.", "John S."];
+        const actions = ["just applied for", "got approved for", "received funds", "withdrew"];
+        const popup = document.getElementById('activity-popup');
+
+        function showPopup() {
+            document.getElementById('popup-name').innerText = names[Math.floor(Math.random() * names.length)];
+            document.getElementById('popup-action').innerText = actions[Math.floor(Math.random() * actions.length)];
+            document.getElementById('popup-amount').innerText = `$${(Math.floor(Math.random() * 40) * 100 + 500).toLocaleString()}`;
+            
+            popup.classList.add('show');
+            setTimeout(() => popup.classList.remove('show'), 5000);
+        }
+        setInterval(showPopup, 12000); // Show every 12 seconds
+        setTimeout(showPopup, 3000);    // First show after 3 seconds
+    </script>
+</body>
+</html>
